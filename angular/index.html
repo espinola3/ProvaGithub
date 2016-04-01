@@ -1,0 +1,119 @@
+<!doctype html>
+
+<html ng-app="MainApp">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Ejemplo MEAN</title>
+    <!-- Cargamos bootstrap -->
+    <link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+    <!-- Cargamos angular -->
+    <script src="//ajax.googleapis.com/ajax/libs/angularjs/1.2.16/angular.min.js"></script>
+    <!-- Cargamos el javascript de angular -->
+    <!--<script src="core.js"></script>-->
+
+</head>
+<body ng-controller="mainController">
+<div class="container">
+
+    <div class="jumbotron text-center" ng-prueba>
+        <h1>Nº de Registros: <span class="label label-success">{{ personas.length }}</span></h1>
+    </div>
+
+    <div class="row">
+        <div class="col-sm-6 col-sm-offset-1">
+            <table class="table table-striped">
+                <tr class="info">
+                    <td>Nombre</td>
+                    <td>Apellidos</td>
+                    <td>Edad</td>
+                </tr>
+                <tr ng-repeat="persona in personas" ng-click="selectPerson(persona)">
+                    <td>{{ persona.nombre }}</td>
+                    <td>{{ persona.apellido }}</td>
+                    <td>{{ persona.edad }}</td>
+                </tr>
+            </table>
+        </div>
+        <div class="col-sm-4 col-sm-offset-1 text-center">
+            <form name="myForm">
+                <div class="form-group">
+                    <input type="text" class="form-control input-lg text-center" placeholder="Nombre" ng-model="newPersona.nombre" required>
+                    <br>
+                    <input type="text" class="form-control input-lg text-center" placeholder="Apellido" ng-model="newPersona.apellido" required>
+                    <br>
+                    <input type="text" class="form-control input-lg text-center" placeholder="Edad" ng-model="newPersona.edad" required>
+                </div>
+
+                <!-- Acciones que podemos realizar en el formulario -->
+                <button type="submit" class="btn btn-success btn-lg" ng-click="registrarPersona()" ng-disabled="myForm.$invalid || selected">Registrar</button>
+                <button type="submit" class="btn btn-warning btn-lg" ng-click="modificarPersona(newPersona)" ng-disabled="!newPersona.nombre || !newPersona.apellido || !newPersona.edad || !selected">Modificar</button>
+                <button type="submit" class="btn btn-danger btn-lg" ng-click="borrarPersona(newPersona)" ng-disabled="!newPersona.nombre || !newPersona.apellido || !newPersona.edad || !selected">Borrar</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+        angular.module('MainApp', [])
+
+function mainController($scope, $http) {
+$scope.newPersona = {};
+$scope.personas = {};
+$scope.selected = false;
+
+// Obtenemos todos los datos de la base de datos
+$http.get('/api/persona').success(function(data) {
+$scope.personas = data;
+})
+.error(function(data) {
+console.log('Error: ' + data);
+});
+
+// Función para registrar a una persona
+$scope.registrarPersona = function() {
+$http.post('/api/persona', $scope.newPersona)
+.success(function(data) {
+$scope.newPersona = {}; // Borramos los datos del formulario
+$scope.personas = data;
+})
+.error(function(data) {
+console.log('Error: ' + data);
+});
+};
+
+// Función para editar los datos de una persona
+$scope.modificarPersona = function(newPersona) {
+$http.put('/api/persona/' + $scope.newPersona._id, $scope.newPersona)
+.success(function(data) {
+$scope.newPersona = {}; // Borramos los datos del formulario
+$scope.personas = data;
+$scope.selected = false;
+})
+.error(function(data) {
+console.log('Error: ' + data);
+});
+};
+
+// Función que borra un objeto persona conocido su id
+$scope.borrarPersona = function(newPersona) {
+$http.delete('/api/persona/' + $scope.newPersona._id)
+.success(function(data) {
+$scope.newPersona = {};
+$scope.personas = data;
+$scope.selected = false;
+})
+.error(function(data) {
+console.log('Error: ' + data);
+});
+};
+
+// Función para coger el objeto seleccionado en la tabla
+$scope.selectPerson = function(persona) {
+$scope.newPersona = persona;
+$scope.selected = true;
+console.log($scope.newPersona, $scope.selected);
+};
+}
+</script>
+</body>
+</html>
